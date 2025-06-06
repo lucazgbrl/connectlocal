@@ -1,0 +1,36 @@
+{
+  "name": "connectlocal-backend",
+  "version": "1.0.0",
+  "description": "Backend API for the ConnectLocal platform",
+  "main": "server.ts",
+  "scripts": {
+    "dev": "node ace serve --watch",
+    "build": "node ace build --production",
+    "start": "node build/server.js",
+    "lint": "eslint . --ext .ts"
+  },
+  "keywords": [
+    "adonisjs",
+    "api",
+    "connectlocal"
+  ],
+  "author": "Lucas Gabriel",
+  "license": "MIT",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@adonisjs/auth": "^9.0.1",
+    "@adonisjs/bodyparser": "^9.0.1",
+    "@adonisjs/cors": "^10.0.0",
+    "@adonisjs/core": "^6.7.2",
+    "@adonisjs/lucid": "^18.4.0",
+    "luxon": "^3.4.4",
+    "pg": "^8.11.3"
+  },
+  "devDependencies": {
+    "@adonisjs/eslint-config": "^1.1.1",
+    "@types/node": "^20.11.30",
+    "eslint": "^8.57.0",
+    "typescript": "^5.4.5"
+  }
+}
