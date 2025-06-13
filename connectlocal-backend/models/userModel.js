@@ -16,11 +16,9 @@ async function addUser(fastify, userData) {
   const conn = await fastify.mysql.getConnection();
   const { full_name, email, password } = userData;
 
-  const now = new Date(); // pega o timestamp atual
-
   const [result] = await conn.query(
-    "INSERT INTO users (full_name, email, password, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
-    [full_name, email, password, now, now]
+    "INSERT INTO users (full_name, email, password) VALUES (?, ?, ?)",
+    [full_name, email, password]
   );
 
   conn.release();
@@ -30,8 +28,6 @@ async function addUser(fastify, userData) {
     full_name,
     email,
     password,
-    created_at: now,
-    updated_at: now,
   };
 }
 
