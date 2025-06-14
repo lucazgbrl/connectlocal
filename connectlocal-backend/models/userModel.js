@@ -12,23 +12,56 @@ async function getUserById(fastify, id) {
   return rows[0];
 }
 
-async function addUser(fastify, userData) {
+async function createUser(fastify, userData) {
   const conn = await fastify.mysql.getConnection();
-  const { full_name, email, password } = userData;
 
-  const [result] = await conn.query(
-    "INSERT INTO users (full_name, email, password) VALUES (?, ?, ?)",
-    [full_name, email, password]
-  );
+  try {
+    await conn.beginTransaction();
 
-  conn.release();
+    const { full_name, email, password, user_type } = userData;
 
-  return {
-    id: result.insertId,
-    full_name,
-    email,
-    password,
-  };
+    // Validação mínima
+    if (!full_name || !email || !password || !user_type) {
+      return { error: "Missing required user fields" };
+    }
+
+    // 1. Cria usuário base
+    const [userResult] = await conn.query(
+      "INSERT INTO users (full_name, email, password, user_type) VALUES (?, ?, ?, ?)",
+      [full_name, email, password, user_type]
+    );
+
+    const userId = userResult.insertId;
+
+    // 2. Se for lojista, insere na tabela merchants
+    if (user_type === "merchant") {
+      const { business_name = null, phone = null, address = null } = userData;
+
+      await conn.query(
+        "INSERT INTO merchants (user_id, business_name, phone, address) VALUES (?, ?, ?, ?)",
+        [userId, business_name, phone, address]
+      );
+    }
+
+    // 3. Se for consumidor, insere na tabela consumers
+    if (user_type === "consumer") {
+      const { phone = null } = userData;
+
+      await conn.query("INSERT INTO consumers (user_id, phone) VALUES (?, ?)", [
+        userId,
+        phone,
+      ]);
+    }
+
+    await conn.commit();
+
+    return { id: userId, ...userData };
+  } catch (err) {
+    await conn.rollback();
+    throw err;
+  } finally {
+    conn.release();
+  }
 }
 
 async function updateUser(fastify, id, fieldsToUpdate) {
@@ -68,7 +101,7 @@ async function deleteUser(fastify, id) {
 module.exports = {
   getAllUsers,
   getUserById,
-  addUser,
+  createUser,
   updateUser,
   deleteUser,
 };

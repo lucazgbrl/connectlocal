@@ -12,6 +12,8 @@ fastify.register(fastifyMysql, {
 });
 
 fastify.register(userRoutes);
+fastify.register(require("./routes/merchantRoutes"));
+fastify.register(require("./routes/consumerRoutes"));
 
 fastify.get("/test-db", async (request, reply) => {
   const conn = await fastify.mysql.getConnection();

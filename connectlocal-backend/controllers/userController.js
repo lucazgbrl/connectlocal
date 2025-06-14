@@ -1,65 +1,73 @@
 const userModel = require("../models/userModel");
 
-async function getUsers(request, reply) {
-  const users = await userModel.getAllUsers(request.server);
-  return users;
+async function createUser(req, reply) {
+  try {
+    const result = await userModel.createUser(req.server, req.body);
+
+    if (result.error) {
+      return reply.status(400).send({ error: result.error });
+    }
+
+    return reply.status(201).send(result);
+  } catch (err) {
+    console.error("Erro ao criar usuário:", err);
+    return reply.status(500).send({ error: "Erro interno" });
+  }
 }
 
-async function getUser(request, reply) {
-  const id = request.params.id;
-  console.log("Buscando usuário com ID:", id);
-  const user = await userModel.getUserById(request.server, Number(id));
-  console.log("Resultado da busca:", user);
-  if (!user) {
-    return reply.status(404).send({ error: "User not found" });
+async function getUser(req, reply) {
+  try {
+    const id = req.params.id;
+    const user = await userModel.getUserById(req.server, id);
+
+    if (!user) {
+      return reply.status(404).send({ error: "Usuário não encontrado" });
+    }
+
+    return reply.send(user);
+  } catch (err) {
+    console.error("Erro ao buscar usuário:", err);
+    return reply.status(500).send({ error: "Erro interno" });
   }
-  return user;
 }
 
-async function addUser(request, reply) {
-  const { full_name, email, password } = request.body;
-  const newUser = await userModel.addUser(request.server, {
-    full_name,
-    email,
-    password,
-  });
-  reply.status(201).send(newUser);
+async function updateUser(req, reply) {
+  try {
+    const id = req.params.id;
+    const user = await userModel.getUserById(req.server, id);
+
+    if (!user) {
+      return reply.status(404).send({ error: "Usuário não encontrado" });
+    }
+
+    const result = await userModel.updateUser(req.server, id, req.body);
+
+    return reply.send(result);
+  } catch (err) {
+    console.error("Erro ao atualizar usuário:", err);
+    return reply.status(500).send({ error: "Erro interno" });
+  }
 }
 
-async function updateUser(request, reply) {
-  const id = request.params.id;
-  const data = request.body;
+async function deleteUser(req, reply) {
+  try {
+    const id = req.params.id;
+    const deleted = await userModel.deleteUser(req.server, id);
 
-  // Garantir que mandou pelo menos 1 campo
-  if (!data || Object.keys(data).length === 0) {
-    return reply
-      .status(400)
-      .send({ error: "Nenhum campo enviado para atualizar" });
+    if (!deleted) {
+      return reply.status(404).send({ error: "Usuário não encontrado" });
+    }
+
+    return reply.status(204).send(); // Sem conteúdo
+  } catch (err) {
+    console.error("Erro ao deletar usuário:", err);
+    return reply.status(500).send({ error: "Erro interno" });
   }
-
-  const user = await userModel.getUserById(request.server, id);
-  if (!user) {
-    return reply.status(404).send({ error: "User not found" });
-  }
-
-  const updatedUser = await userModel.updateUser(request.server, id, data);
-  return updatedUser;
-}
-
-async function deleteUser(request, reply) {
-  const id = request.params.id;
-  const user = await userModel.getUserById(request.server, id);
-  if (!user) {
-    return reply.status(404).send({ error: "User not found" });
-  }
-  await userModel.deleteUser(request.server, id);
-  return reply.status(204).send({ message: "User deleted successfully" });
 }
 
 module.exports = {
-  getUsers,
+  createUser,
   getUser,
-  addUser,
   updateUser,
   deleteUser,
 };

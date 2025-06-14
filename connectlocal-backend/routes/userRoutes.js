@@ -1,15 +1,13 @@
 const {
-  getUsers,
   getUser,
-  addUser,
+  createUser,
   updateUser,
   deleteUser,
 } = require("../controllers/userController");
 
 async function userRoutes(fastify) {
-  fastify.get("/users", getUsers);
   fastify.get("/users/:id", getUser);
-  fastify.post("/users", addUser);
+  fastify.post("/users", createUser);
   fastify.put("/users/:id", updateUser);
   fastify.delete("/users/:id", deleteUser);
 }
